@@ -10,6 +10,7 @@ Create table ResearchParticipant (
     REM_ID                          VARCHAR(20) NOT NULL,
     DementiaLength_ID               VARCHAR(20) NOT NULL,
     DementiaRating_ID               VARCHAR(20) NOT NULL,
+    PRIMARY KEY (ResearchParticipant_ID)
 );
 
 Create table LifeStyle (
