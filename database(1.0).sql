@@ -78,7 +78,7 @@ Create table Dementia_Length (
     PRIMARY KEY (DementiaLength_ID)
 );
 
-Create DementiaRating (
+Create table DementiaRating (
     DementiaRating_ID               VARCHAR(20) NOT NULL, 
     Dementia_SegemntRating          FLOAT       NOT NULL,
     Max_DementiaRating              FLOAT       NOT NULL,
