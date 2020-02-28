@@ -32,11 +32,11 @@ timerHz = 33492.3494619704
 #
 #Apply the local directory for which this program is located in your system
 #Example r"C:\Users\brad\My_Dir"
-directory = r""
+directory = r"C:\Users\bradb\Documents\Research_Application\Log_to_CSV"
 for filename in os.listdir(directory):
-    if filename.endswith(".LOG"):
+    #if filename.endswith(".LOG"):
         #filename = sys.argv[1]
-        #filename="REC0.LOG"
+        filename="REC0.LOG"
 
         if not os.path.isfile(filename):
             print("File doesn't exist: " + filename)
