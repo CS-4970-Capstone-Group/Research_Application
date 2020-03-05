@@ -6,3 +6,5 @@ Question: the information of notes
 
 
 GhostRiders(v2.1) is the structure of the database
+
+DBMS(V1).py includes the insert, update, query,delete
