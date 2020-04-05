@@ -27,29 +27,26 @@ timerHz = 33492.3494619704
 
 
 #if len(sys.argv) != 2:
-#    print("Usage: scale2csv.py [filename]")
-#    sys.exit(0)
-#
+    #print("Usage: scale2csv.py [filename]")
+    #sys.exit(0)
+
 #Apply the local directory for which this program is located in your system
 #Example r"C:\Users\brad\My_Dir"
 directory = r"C:\Users\bradb\Documents\Research_Application\Log_to_CSV"
 for filename in os.listdir(directory):
-    #if filename.endswith(".LOG"):
-        #filename = sys.argv[1]
-        filename="REC0.LOG"
+    if filename.endswith(".LOG"):
+        filename = sys.argv[1]
+        #filename="REC0.LOG"
 
         if not os.path.isfile(filename):
             print("File doesn't exist: " + filename)
-
 
         outfilename = filename + ".csv"
 
         outfile = open(outfilename, "w+")
 
-
-
-
         results = []
+
         with open(filename, "rb") as infile:
             data = infile.read(file_struct_len)
             if not data:
