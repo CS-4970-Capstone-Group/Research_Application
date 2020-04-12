@@ -138,39 +138,6 @@ class Home_Page(Frame):
         label.pack()
         label.place(x = 50, y = 200)
         '''
-class Insert_Page(Frame):
-
-    def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
-        self.controller = controller
-
-        label = Label(self, text="This is page 1", font=controller.title_font)
-        label.pack(side="top", fill="x", pady=10)
-
-        page = ttk.Notebook(self)
-        tab1 = ttk.Frame(page)
-        tab2 = ttk.Frame(page)
-        tab3 = ttk.Frame(page)
-
-        page.add(tab1, text='One')
-        page.add(tab2, text='Two')
-        page.add(tab3, text='three')
-
-        page.pack(fill=BOTH, expand=1)
-
-        day_label = Label(tab1, text="Tab1:")
-        day_label.pack()
-        day_label.place(x=0, y=30)
-        day_label = Label(tab2, text="Tab2:")
-        day_label.pack()
-        day_label.place(x=0, y=30)
-        day_label = Label(tab3, text="Tab3:")
-        day_label.pack()
-        day_label.place(x=0, y=30)
-
-        button = Button(self, text="Back to the home page", command=lambda: controller.show_frame("Home_Page"), height = 2, width = 16)
-        button.pack()
-
 class Research_Assistant(Frame):
 
     def __init__(self, parent, controller):
