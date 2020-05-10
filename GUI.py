@@ -601,7 +601,7 @@ class Individual_Classification(Frame):
         label_result.pack()
         label_result.place(x = 400, y =300)
 
-        label_result = Label(self, text="Heart Failure Risk Percent", font=controller.title_font)
+        label_result = Label(self, text="Heart Failure Result", font=controller.title_font)
         label_result.pack()
         label_result.place(x = 330, y =350)
 
