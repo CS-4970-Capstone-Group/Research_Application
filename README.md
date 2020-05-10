@@ -1,4 +1,4 @@
-#Heart Failure Research_Application
+# Heart Failure Research_Application
 
 Machine learning application that classifies potential heart failure from BCG data
 Application designed to aid researchers with a premade convolutional neural network trained for heart failure classification from accessible ballistocardiogram data.
