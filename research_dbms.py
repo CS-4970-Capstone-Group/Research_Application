@@ -5,26 +5,18 @@ from matplotlib import pyplot as plt
 import sys
 np.set_printoptions(threshold=sys.maxsize)
 from scipy import interpolate
-from tkinter import messagebox
 
 class Research_DBMS():
     #BCG DBMS functions#----------------------------------
+
     def create_connection(self):
         connection = None
-        '''
+
         connection = mysql.connector.connect(
             host="127.0.0.1",
             user="root",
             passwd="Catch_22#",
             database="research_dbms"
-            )
-        return connection
-        '''
-        connection = mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",
-            passwd="12345678",
-            database="GhostRiders"
             )
         return connection
 
@@ -66,25 +58,27 @@ class Research_DBMS():
         bcg_arr = arr.flatten()
         file.close()
         return bcg_arr
-    
-    def create_bcg_records_table(self, entity):
+
+    def create_bcg_records_table(self, entity, owner):
         print("creating table")
-        sql = "CREATE TABLE IF NOT EXISTS " + entity + "_bcg_records (bcg_recording_id INT NOT NULL AUTO_INCREMENT, \
-            has_ground_truth INT, classification_label INT, owner_id INT NOT NULL, PRIMARY KEY (bcg_recording_id), \
-            INDEX bcg_recording_idx (owner_id ASC) VISIBLE, CONSTRAINT owner_id FOREIGN KEY (owner_id) \
+        sql = "CREATE TABLE IF NOT EXISTS " + entity + " (bcg_recording_id INT NOT NULL AUTO_INCREMENT, \
+            classification_label INT, " + owner +  " INT NOT NULL, PRIMARY KEY (bcg_recording_id), \
+            INDEX bcg_recording_idx (" + owner + " ASC) VISIBLE, CONSTRAINT " + owner + " FOREIGN KEY (" + owner + ") \
             REFERENCES people(person_id) ON DELETE CASCADE ON UPDATE CASCADE);"
         conn = self.create_connection()
         cursor = conn.cursor()
         cursor.execute(sql)
+        conn.commit()
         cursor.close()
         conn.close()
 
-    def create_bcg_data_table(self, entity, recordings_table):
+    def create_bcg_data_table(self, entity, recordings_table, reference):
         print("creating bcg data table")
+        print(reference)
         sql = "CREATE TABLE IF NOT EXISTS " + entity + " (bcg_data_id INT NOT NULL AUTO_INCREMENT, \
-                bcg_data_value DOUBLE, recording_id2 INT NOT NULL, PRIMARY KEY (bcg_data_id), \
-                INDEX bcg_data_idx (recording_id2 ASC) VISIBLE, CONSTRAINT recording_id2 \
-                FOREIGN KEY (recording_id2) REFERENCES " + recordings_table + "(bcg_recording_id) \
+                bcg_data_value DOUBLE, " + reference + " INT NOT NULL, PRIMARY KEY (bcg_data_id), \
+                INDEX bcg_data_idx (" + reference + " ASC) VISIBLE, CONSTRAINT " + reference + \
+                " FOREIGN KEY (" + reference + ") REFERENCES " + recordings_table + " (bcg_recording_id) \
                 ON DELETE CASCADE ON UPDATE CASCADE);"
         conn = self.create_connection()
         cursor = conn.cursor()
@@ -92,132 +86,64 @@ class Research_DBMS():
         cursor.close()
         conn.close()
 
-    def insert_bcg_record(self, records, ground_truth, class_label, owner_id):
-        if ground_truth != 1 or ground_truth != 0:
-            print("Invalid Ground Truth Entry")
-
+    #Primary Function (Use with GUI; includes form elements to take in directory to CSV and class and id of person)
+    def insert_bcg_record(self, directory, class_label, person_id):
         conn = self.create_connection()
         cursor = conn.cursor()
-        sql = "INSERT INTO " + records + " (has_ground_truth, classification_label, owner_id) VALUES (%s, %s, %s);"
-        cursor.execute(sql, (ground_truth, class_label, owner_id))
+        owner = "person_" + str(person_id) #naming convention for foreign key is just combo of person and id number
+        records = "records_table_" + str(person_id) #based on naming convention for the table of records
+        sql = "INSERT INTO " + records + " (classification_label, " + owner + ") VALUES (%s, %s);"
+        print(sql)
+        cursor.execute(sql, (class_label, person_id))
+        #Setup for data table creation
+        sql2 = "SELECT MAX(bcg_recording_id) FROM " +  records + ";"
+        cursor.execute(sql2)
+        id = cursor.fetchall()
+        result_id = str(id[0][0])
+        table_name = "bcg_table_" + result_id #unique data table name
+        reference = "record_" + result_id #unique foreign key name
         conn.commit()
         cursor.close()
         conn.close()
+        self.create_bcg_data_table(table_name, records, reference) #creating unique data table for individual record
+        self.insert_bcg_data(directory, result_id, table_name) #populating/loading data into new unique data table
 
-    def insert_person(self, name, height, weight, age, bloodh, bloodl, ethnicity, gender, hypertension, ground_truth):
-
-        conn = mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",
-            passwd="12345678",
-            database="GhostRiders"
-            )
-        #get cursor
+    #Primary Function (Use with GUI)
+    def insert_person(self,age,gender,height,weight, bp,ht,gt,ethnicity,name):
+        conn = self.create_connection()
         cursor = conn.cursor()
-        sql = "INSERT INTO people(name,height,weight,age,blood_pressure_high,blood_pressure_low,ethnicity,gender,hypertension,ground_truth) VALUES ('%s','%s','%s', '%s', '%s','%s','%s', '%s','%s','%s')" % (name, height, weight, age, bloodh, bloodl, ethnicity, gender, hypertension, ground_truth)
-        try:
-            #execute the sql command
-            cursor.execute(sql)
-            print("Insert the data successfully")
-            #submit to the database
-            conn.commit()
-            messagebox.showinfo("INFO", "Successfully Insert")
-        except:
-            print("Insert the data fail")
-            messagebox.showinfo(("INFO", "Failed to insert"))
-            #Rollback in case there is any error
-            conn.rollback()
+        sql = "INSERT INTO people (age, gender, height, weight, blood_pressure, hypertension, ground_truth_data, ethnicity, name) " \
+              "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        cursor.execute(sql, (age,gender,height,weight,bp, ht, gt, ethnicity, name))
+        #Setup for record table execution
+        sql2 = "SELECT MAX(person_id) FROM people;"
+        cursor.execute(sql2)
+        id = cursor.fetchall()
+        record_id = str(id[0][0])
+        table_name = "records_table_" + record_id #naming convention for unique records table per person id
+        owner = "person_" + record_id #naming convention for unique foreign key in the new records table
+        conn.commit()
         cursor.close()
         conn.close()
-    
-    def insert_person_clear(self,entry_name, entry_height, entry_weight, entry_age,entry_blood_pressure_high, entry_blood_pressure_low,ethnicitychoosen,gender_choosen,hypertension_choosen,ground_truth_choosen):
-        END = 'end'
-        entry_name.delete(0,END)
-        entry_height.delete(0,END)
-        entry_weight.delete(0,END)
-        entry_age.delete(0,END)
-        entry_blood_pressure_high.delete(0,END)
-        entry_blood_pressure_low.delete(0,END)
-        ethnicitychoosen.delete(0,END)
-        gender_choosen.delete(0,END)
-        hypertension_choosen.delete(0,END)
-        ground_truth_choosen.delete(0,END)
+        #Call to create the individual BCG records table
+        self.create_bcg_records_table(table_name, owner)
+
 
     def insert_bcg_data(self, file_directory, record, table):
         data = self.convert_csv(file_directory)
+        print(record)
+        print(table)
         print("inserting bcg data")
         conn = self.create_connection()
         cursor = conn.cursor()
-        sql = "INSERT INTO " + table + " (bcg_data_value, recording_id2) VALUES (%s, %s)"
+        foreign_key = "record_" + record
+        print(foreign_key)
+        sql = "INSERT INTO " + table + " (bcg_data_value, " + foreign_key + ") VALUES(%s, %s);"
         for i in range(len(data)):
-            cursor.execute(sql, (float(data[i]), record))
+            cursor.execute(sql, ((float(data[i])), record))
         conn.commit()
         cursor.close()
         conn.close()
-    
-    def search_person(self, searchid):
-        conn = mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",
-            passwd="12345678",
-            database="GhostRiders"
-            )
-        # get cursor
-        cursor = conn.cursor()
-        # SQL insert command
-        sql = "SELECT * FROM  people WHERE subject_id = '%s' " % (searchid)
-        try:
-            # execute the sql command
-            cursor.execute(sql)
-            temp = cursor.fetchall()
-            # submit to the database
-            conn.commit()
-            for i, item in enumerate(temp):
-                self.treeAddressList.insert('', i, values=item[1:])
-            print("search the data successfully")
-        except:
-            print("search the data fail")
-            # Rollback in case there is any error
-            messagebox.showinfo("INFO", "Failed to Search")
-            conn.rollback()
-        cursor.close()
-        # Close the database
-        conn.close()
-
-    def search_person_clear(self,entry_subject_id):
-        END = 'end'
-        entry_subject_id.delete(0,END)
-    
-    def delete_person(self, inputid):
-        conn = mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",
-            passwd="12345678",
-            database="GhostRiders"
-            )
-        # get cursor
-        cursor = conn.cursor()
-        # SQL insert command
-        sql = "DELETE FROM people WHERE subject_id = '%s' " % (inputid)
-        try:
-            # execute the sql command
-            cursor.execute(sql)
-            print("delete the data successfully")
-            # submit to the database
-            conn.commit()
-            messagebox.showinfo("INFO", "Successfully delete")
-        except:
-            print("delete the data fail")
-            # Rollback in case there is any error
-            messagebox.showinfo("INFO", "Failed to delete")
-            conn.rollback()
-        cursor.close()
-        # Close the database
-        conn.close()
-
-    def delete_person_clear(self,entry_id_to_delete):
-        END = 'end'
-        entry_id_to_delete.delete(0,END)
 
     def delete_bcg_data(self):
         print("deleting bcg data")
@@ -274,120 +200,6 @@ class Research_DBMS():
         print(risk)
         return risk
 
-    def dbage():
-        conn = mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",
-            passwd="12345678",
-            database="GhostRiders"
-            )
-        # get cursor
-        cursor = conn.cursor()
-        # SQL insert command
-        sql = "SELECT age FROM people"
-        try:
-            # execute the sql command
-            cursor.execute(sql)
-            temp = cursor.fetchall()
-            print("select age successful")
-            datalist = []
-            for age in temp:
-                datalist.append(age[0])
-            
-            # submit to the database
-            conn.commit()
-        except:
-            print("retrieve the data fail")
-            # Rollback in case there is any error
-            messagebox.showinfo("INFO", "Failed to retrive")
-            conn.rollback()
-        # Close the database
-        return datalist
-        conn.close()
-
-    def dbweight():
-        conn = mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",
-            passwd="12345678",
-            database="GhostRiders"
-            )
-        # get cursor
-        cursor = conn.cursor()
-        # SQL insert command
-        sql = "SELECT weight FROM people"
-        try:
-            # execute the sql command
-            cursor.execute(sql)
-            temp = cursor.fetchall()
-            print("select weight successful")
-            datalist = []
-            for weight in temp:
-                datalist.append(weight[0])
-            
-            # submit to the database
-            conn.commit()
-        except:
-            print("retrieve the data fail")
-            # Rollback in case there is any error
-            messagebox.showinfo("INFO", "Failed to retrive")
-            conn.rollback()
-        # Close the database
-        return datalist
-        conn.close()
-
-    def dbbmi():
-        conn = mysql.connector.connect(
-            host="127.0.0.1",
-            user="root",
-            passwd="12345678",
-            database="GhostRiders"
-            )
-        # get cursor
-        cursor = conn.cursor()
-        # SQL insert command
-        sql = "SELECT weight FROM people"
-        try:
-            # execute the sql command
-            cursor.execute(sql)
-            temp = cursor.fetchall()
-            print("select weight successful")
-            datalist_weight = []
-            for weight in temp:
-                datalist_weight.append(weight[0])
-            
-            # submit to the database
-            conn.commit()
-        except:
-            print("retrieve the data fail")
-            # Rollback in case there is any error
-            messagebox.showinfo("INFO", "Failed to retrive")
-            conn.rollback()
-        # Close the database
-        sql = "SELECT height FROM people"
-        try:
-            # execute the sql command
-            cursor.execute(sql)
-            temp = cursor.fetchall()
-            print("select height successful")
-            datalist_height = []
-            for height in temp:
-                datalist_height.append(height[0])
-            
-            # submit to the database
-            conn.commit()
-        except:
-            print("retrieve the data fail")
-            # Rollback in case there is any error
-            messagebox.showinfo("INFO", "Failed to retrive")
-            conn.rollback()
-        array = np.array(datalist_height)
-        array_cm = array/100.
-        datalist_height_new = list(array_cm)
-        bmi = [a/(b**2) for a,b in  zip(datalist_weight,datalist_height_new)]     
-        return bmi
-        conn.close()
-
     #------------------------------------------------------
     #These functions may or may not be needed as the Keras library has some support for these kind of operations
     #CNN DBMS functions#-----------------------------------
@@ -401,8 +213,10 @@ class Research_DBMS():
 
 #Some on-the-fly testing
 db = Research_DBMS()
-#dir = r"C:\Users\bradb\Documents\UCSF_Data_Processor\REC0_BCG.csv"
+dir = r"C:\Users\bradb\Documents\UCSF_Data_Processor\REC0_BCG.csv"
 person = "subjectA"
+#db.insert_person(20,"Male", 200, 180, 99, 0, 0, "African", "Subject0")
+db.insert_bcg_record(dir, 1, 27)
 #db.create_bcg_records_table(person)
 #record = "subjecta_bcg_records"
 #db.insert_bcg_record(record, 1, 0, 1)
@@ -410,7 +224,7 @@ person = "subjectA"
 #recording2 = "recording2"
 #db.create_bcg_data_table(recording2, record)
 #db.insert_bcg_data(dir, 11, recording2)
-db.read_risk_and_age()
+#db.read_risk_and_age()
 #db.update_classification(0.5, 1)
 #db.read_classification(4)
 
