@@ -83,7 +83,7 @@ class Home_Page(Frame):
         button_about_menu.pack()
         button_about_menu.place(x = 750, y = 50)
         
-        load = Image.open("/Users/chulehou/Documents/Capstone_Mizzou/UI Design/Application_Home.jpg")
+        load = Image.open("/Images/Application_Home.jpg")
         render = ImageTk.PhotoImage(load)
         img = Label(self, image=render)
         img.image = render
@@ -124,7 +124,7 @@ class Data_Visualization(Frame):
         button_signal_classification_back.pack()
         button_signal_classification_back.place(x = 665, y = 50)
         
-        load = Image.open("/Users/chulehou/Documents/Capstone_Mizzou/UI Design/data_visualization.jpg")
+        load = Image.open("/Images/data_visualization.jpg")
         render = ImageTk.PhotoImage(load)
         img = Label(self, image=render)
         img.image = render
@@ -154,7 +154,7 @@ class Data_Management(Frame):
         button_dm_back.pack()
         button_dm_back.place(x = 665, y = 50)
 
-        load = Image.open("/Users/chulehou/Documents/Capstone_Mizzou/UI Design/Navicat.png")
+        load = Image.open("/Images/Navicat.png")
         render = ImageTk.PhotoImage(load)
         img = Label(self, image=render)
         img.image = render
