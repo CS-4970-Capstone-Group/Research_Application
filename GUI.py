@@ -505,7 +505,8 @@ class Import(Frame):
                                                                                                                             ethnicitychoosen,
                                                                                                                             gender_choosen,
                                                                                                                             hypertension_choosen,
-                                                                                                                            ground_truth_choosen)])
+                                                                                                                            ground_truth_choosen),
+                                                                                                                            self.dbimportdata(entry_signal_file_path.get().strip())])
         button_upload_data_to_db.pack()
         button_upload_data_to_db.place(x = 340, y = 530)
 
@@ -516,6 +517,9 @@ class Import(Frame):
         button_choose_data = Button(self, text="Choose the Signal Data", height = 2, width = 25, command = inputfilepath)
         button_choose_data.pack()
         button_choose_data.place(x = 340, y = 480)
+        
+    def dbimportdata(self, data_directory):
+        db.insert_bcg_data_file(self, data_directory)
 
     def dbimport(self, name, height, weight, age, bloodh, bloodl, ethnicity, gender, hypertension, ground_truth):
         db.insert_person(self, name, height, weight, age, bloodh, bloodl, ethnicity, gender, hypertension, ground_truth)
