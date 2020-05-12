@@ -144,6 +144,30 @@ class Research_DBMS():
         conn.commit()
         cursor.close()
         conn.close()
+     
+     def insert_bcg_data_file(self, file_directory):
+        conn = mysql.connector.connect(
+            host="127.0.0.1",
+            user="root",
+            passwd="12345678",
+            database="GhostRiders"
+            )
+        # get cursor
+        cursor = conn.cursor()
+        sql_createTb = """create table bcg_table(
+                health_data float,
+                bcg_data_id int not null auto_increment,
+                person_id int,
+                primary key(bcg_data_id),
+                foreign key(person_id) references people(subject_id));
+                """
+        cursor.execute(sql_createTb)
+        csv_data = csv.reader(file_directory)
+        for row in csv_data:
+            cursor.execute('INSERT INTO bcg_table(health_data) VALUES ("%f")',row)
+        conn.commit()
+        cursor.close()
+        conn.close()
 
     def delete_bcg_data(self):
         print("deleting bcg data")
