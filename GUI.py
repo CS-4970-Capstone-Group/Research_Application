@@ -11,6 +11,9 @@ from research_dbms import Research_DBMS as db
 import sys
 import os
 import data_visualization as dv
+from heart_risk_classifier import Heart_Risk_Classifier
+from tkinter import filedialog
+import numpy as np
 
 class ghostriders(Tk):
 
@@ -678,7 +681,7 @@ class Individual_Classification(Frame):
         self.treeAddressList.pack()
         self.treeAddressList.place(x = 20, y = 150)
 
-        button_individual_classification_back = Button(self, text="Determine Risk?", height = 2, width = 16)
+        button_individual_classification_back = Button(self, text="Determine Risk?", height = 2, width = 16, command = lambda: display_class(self))
         button_individual_classification_back.pack()
         button_individual_classification_back.place(x = 375, y = 250)
 
@@ -697,7 +700,20 @@ class Individual_Classification(Frame):
         button_individual_classification_back = Button(self, text="Back to the last page", command=lambda: controller.show_frame("Analysis"), height = 2, width = 16)
         button_individual_classification_back.pack()
         button_individual_classification_back.place(x = 375, y = 550)
-
+    
+    def display_class(self):
+        dbms = Research_DBMS()
+        fd = filedialog
+        file = fd.askopenfilename()
+        data = dbms.convert_csv(file)
+        data_arr = np.asarray(data,dtype="double")
+        data_arr = data_arr[0:3000]
+        data_arr = np.expand_dims(data_arr, axis=0)
+        template = "model.h5"
+        hc = Heart_Risk_Classifier()
+        result = str(hc.classify_risk(template, data_arr))
+        entry_risk_percentile.insert(0, result)
+    
     def dbsearch(self, searchid):
         db.search_person(self, searchid)
     
